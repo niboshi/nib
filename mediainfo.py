@@ -40,7 +40,7 @@ class MediaInfo:
         d = { }
         informStr = section + ';'
         for tag in tags:
-            informStr += '%' + tag + "%\n"
+            informStr += '%' + tag + "%\\n"
         
         cmd = ['mediainfo', '--Inform=%s' % informStr, self.mediaFile]
         popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=False, preexec_fn = subprocessPreexec)
@@ -54,7 +54,7 @@ class MediaInfo:
         #if len(tags) > len(lines):
         #    raise MediaInfoInvalidResultError()
         
-        for i in xrange(len(tags)):
+        for i in range(len(tags)):
             if i < len(lines):
                 d[tags[i]] = lines[i]
             else:
