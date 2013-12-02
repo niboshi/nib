@@ -1,11 +1,13 @@
 # -*- mode:python; indent-tabs-mode:t; python-indent:4 -*-
+
 import os
 import sys
 
-def encodePath(path):
-	if isinstance(path, str):
-		path = path.encode('utf-8')
-	return path
+# for backward compatibility
+from nib import (
+	encodePath,
+	progress
+	)
 
 def makeRelativePath(targetPath, sourcePath):
 	#print(targetPath, sourcePath)
@@ -68,11 +70,3 @@ def execute(cmd, **kwargs):
 	if proc.returncode != 0:
 		raise Exception("External program '%s' exited with: %d" % (cmd[0], proc.returncode))
 	return stdoutdata,stderrdata
-
-def progress(prev, current, max, str='|----+----|----+----|----+----|----+----|----+----|', out=sys.stdout):
-	l = len(str)
-	i0 = prev    * l / max
-	i1 = current * l / max
-	out.write(str[i0:i1])
-	if i0 < i1:
-		out.flush()
