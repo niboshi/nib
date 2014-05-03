@@ -86,10 +86,10 @@ def progress(prev, current, max, str='|----+----|----+----|----+----|----+----|-
         out.flush()
 
 class TempDir(object):
-	def __init__(self, keep=False, *args):
-		self.args = args
-		self.keep = keep
-		self.path = None
+    def __init__(self, keep=False, *args):
+        self.args = args
+        self.keep = keep
+        self.path = None
 
     def __del__(self):
         self._close()
