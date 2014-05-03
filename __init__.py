@@ -86,16 +86,22 @@ def progress(prev, current, max, str='|----+----|----+----|----+----|----+----|-
         out.flush()
 
 class TempDir(object):
-    def __init__(self):
-        self.path = None
-        pass
+	def __init__(self, keep=False, *args):
+		self.args = args
+		self.keep = keep
+		self.path = None
+
+    def __del__(self):
+        self._close()
 
     def __enter__(self):
-        self.path = tempfile.mkdtemp()
+        self.path = tempfile.mkdtemp(*args)
         return self
 
     def __exit__(self, type, value, traceback):
-        if self.path:
-            if os.path.isdir(self.path):
-                shutil.rmtree(self.path)
+        self._close()
+
+    def _close(self):
+        if self.path is not None and not self.keep:
+            shutil.rmtree(self.path, True)
             self.path = None
