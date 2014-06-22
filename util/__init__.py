@@ -62,6 +62,10 @@ def mkdir(path):
 		if e.errno != errno.EEXIST:
 			raise
 
+def mkparent(path):
+	mkdir(os.path.dirname(path))
+	return path
+
 
 def execute(cmd, **kwargs):
 	import subprocess
