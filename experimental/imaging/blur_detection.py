@@ -19,7 +19,7 @@ def haar_wavelet_transform(im):
         haar_h2(haar_v2(im)),
     ]
 
-def get_blurness(im, threshold=35., min_zero=.05):
+def get_blurness(im, threshold=35. / 255, min_zero=.05):
     '''
     "Blur detection for digital images using wavelet transform"
     Hanghang Tong, 2004
@@ -27,11 +27,14 @@ def get_blurness(im, threshold=35., min_zero=.05):
     THRESHOLD = threshold
     MIN_ZERO = min_zero
 
-    im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+    if len(im.shape) == 3 and im.shape[2] == 3:
+        im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+    if im.dtype == np.uint8:
+        im = im.astype(np.float) / 255.
     im_haar = im.copy()
 
     emax_list = []
-    for i in range(3):
+    for i in range(4):
         w = im.shape[1] / (2 ** (i+1))
         h = im.shape[0] / (2 ** (i+1))
 
@@ -42,6 +45,10 @@ def get_blurness(im, threshold=35., min_zero=.05):
         im_lh = im_haar[:h, w:2*w]
         im_hh = im_haar[h:2*h, w:2*w]
         im_map = np.sqrt(im_lh ** 2 + im_hl ** 2 + im_hh ** 2)
+
+        #im_c = cv2.applyColorMap(cv2.cvtColor(im_map, cv2.COLOR_GRAY2BGR), cv2.COLORMAP_OCEAN)
+        #cv2.imshow(None, im_c)
+        #ret = cv2.waitKey()
 
         wsize = 2 ** (3 - i)
         emax = np.zeros((h / wsize, w / wsize)).astype(np.float32)
@@ -79,6 +86,49 @@ def get_blurness(im, threshold=35., min_zero=.05):
                         n_blurred_roof_gstep += 1
                     pass
 
-    per = float(n_dirac_astep) / n_edge
-    blurness = float(n_blurred_roof_gstep) / n_roof_gstep
+    per      = 0 if n_edge == 0 else float(n_dirac_astep) / n_edge
+    blurness = 0 if n_roof_gstep == 0 else float(n_blurred_roof_gstep) / n_roof_gstep
     return (per, blurness)
+
+def run_corner(im):
+    im = im.copy()
+    im_gray = cv2.cvtColor(im, cv2.cv.CV_BGR2GRAY)
+    corner = cv2.cornerHarris(im_gray, 2, 5, 0.04)
+    #cv2.imshow(None, im)
+    #cv2.waitKey()
+
+    ys, xs = np.where(corner > 0.05)
+    for x, y in zip(xs, ys):
+        cv2.circle(im, (x, y), radius=10, color=(0, 0, 1))
+    cv2.imshow(None, im)
+    cv2.waitKey()
+
+def main(args):
+    while len(args) > 0:
+        image_path = args.pop(0)
+        im = cv2.imread(image_path)
+        assert im is not None
+
+        scale = 1024. / im.shape[1]
+        im = cv2.resize(im, None, fx=scale, fy=scale)
+        im = im.astype(np.float32) / 255.
+
+        run_corner(im)
+        blur = get_blurness(im, threshold = 10 / 255.)
+        print(blur[1])
+
+        #cv2.imshow(None, im)
+        #ret = cv2.waitKey()
+        #if ret == 113:
+        #    return
+
+if __name__ == '__main__':
+    import pdb
+    import traceback
+    try:
+        main(sys.argv[1:])
+    except KeyboardInterrupt:
+        pass
+    except:
+        traceback.print_exc()
+        pdb.post_mortem()
