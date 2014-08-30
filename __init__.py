@@ -6,6 +6,13 @@ import errno
 import subprocess
 import shutil
 
+if sys.version < '3':
+    def u(s):
+        return s.decode('utf-8')
+else:
+    def u(s):
+        return s
+
 def encodePath(path):
     if isinstance(path, str):
         path = path.encode('utf-8')
