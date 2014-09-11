@@ -102,7 +102,7 @@ class TempDir(object):
         self._close()
 
     def __enter__(self):
-        self.path = tempfile.mkdtemp(*args)
+        self.path = tempfile.mkdtemp(*self.args)
         return self
 
     def __exit__(self, type, value, traceback):
