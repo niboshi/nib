@@ -62,7 +62,8 @@ def md5(path, file=True):
     return m.hexdigest()
 
 def mkdir(path):
-    if len(path) == 0: return
+    if len(path) == 0:
+        return path
     try:
         os.makedirs(encodePath(path))
     except OSError as e:

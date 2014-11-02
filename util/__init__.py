@@ -53,24 +53,3 @@ def md5(path, file=True):
 
 	return m.hexdigest()
 
-def mkdir(path):
-	import errno
-	if len(path) == 0: return
-	try:
-		os.makedirs(encodePath(path))
-	except OSError as e:
-		if e.errno != errno.EEXIST:
-			raise
-
-def mkparent(path):
-	mkdir(os.path.dirname(path))
-	return path
-
-
-def execute(cmd, **kwargs):
-	import subprocess
-	proc = subprocess.Popen(cmd, **kwargs)
-	stdoutdata,stderrdata = proc.communicate()
-	if proc.returncode != 0:
-		raise Exception("External program '%s' exited with: %d" % (cmd[0], proc.returncode))
-	return stdoutdata,stderrdata
