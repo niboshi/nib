@@ -5,6 +5,7 @@ import hashlib
 import errno
 import subprocess
 import shutil
+import threading
 
 if sys.version < '3':
     def u(s):
@@ -94,22 +95,120 @@ def progress(prev, current, max, str='|----+----|----+----|----+----|----+----|-
         out.flush()
 
 class TempDir(object):
-    def __init__(self, keep=False, *args):
+    def __init__(self, keep=False, *args, **kwargs):
         self.args = args
+        self.kwargs = kwargs.copy()
         self.keep = keep
         self.path = None
 
+        if 'prefix' in self.kwargs:
+            prefix = self.kwargs['prefix']
+            if prefix is None:
+                del self.kwargs['prefix']
+
+        self.path = tempfile.mkdtemp(*self.args, **self.kwargs)
+
     def __del__(self):
-        self._close()
+        self.close()
 
     def __enter__(self):
-        self.path = tempfile.mkdtemp(*self.args)
         return self
 
     def __exit__(self, type, value, traceback):
-        self._close()
+        self.close()
 
-    def _close(self):
+    def close(self):
         if self.path is not None and not self.keep:
             shutil.rmtree(self.path, True)
             self.path = None
+
+
+class Async(object):
+    def __init__(self, target=None, args=None, print_on_error=False):
+        self.target = target
+        self.args = args
+        self.started = False
+        self.finished = False
+        self.error = False
+        self.result = None
+        self.print_on_error = print_on_error
+        self.handlers_on_success = []
+        self.handlers_on_error = []
+        self.handlers_on_done = []
+        self.thread = None
+
+    @classmethod
+    def from_asyncs(cls, asyncs, **kwargs):
+        def target():
+            results = []
+            for async in asyncs:
+                results.append(async.get())
+            return results
+
+        return cls(target=target, **kwargs)
+
+    def __repr__(self):
+        return "Async({} started={} finished={} error={})".format(id(self), self.started, self.finished, self.error)
+
+    def on_error(self, handler):
+        self.handlers_on_error.append(handler)
+
+    def on_success(self, handler):
+        self.handlers_on_success.append(handler)
+
+    def on_done(self, handler):
+        self.handlers_on_done.append(handler)
+
+    def call_handlers(self, handlers, args=()):
+        for handler in handlers:
+            handler(self, *args)
+
+    def run(self):
+        assert not self.started
+        args = self.args
+        if args is None:
+            args = ()
+        self.started = True
+        try:
+            res = self.target(*args)
+        except Exception as e:
+            self.error = True
+            res = None
+            self.call_handlers(self.handlers_on_error, (e,))
+
+            if self.print_on_error:
+                import traceback
+                traceback.print_exc()
+
+        self.result = res
+        self.finished = True
+
+        if not self.error:
+            self.call_handlers(self.handlers_on_success)
+
+        self.call_handlers(self.handlers_on_done)
+
+    def start(self):
+        self.run_thread()
+
+    def run_thread(self):
+        assert not self.started
+        thread = threading.Thread(target=self.run)
+        thread.daemon = True
+
+        self.thread = thread
+        thread.start()
+
+    def join(self):
+        assert self.thread is not None
+        self.thread.join()
+
+    def get(self):
+        self.join()
+        return self.result
+
+
+class BindingAsync(Async):
+    def __init__(self, asyncs, **kwargs):
+        super(BindingAsync, self).__init__(**kwargs)
+        pass
