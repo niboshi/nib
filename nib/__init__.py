@@ -83,7 +83,7 @@ def execute(cmd, **kwargs):
     proc = subprocess.Popen(cmd, **kwargs)
     stdoutdata,stderrdata = proc.communicate()
     if proc.returncode != 0:
-        raise Exception("External program '%s' exited with: %d" % (cmd[0], proc.returncode))
+        raise RuntimeError("External program '%s' exited with: %d" % (cmd[0], proc.returncode))
     return stdoutdata,stderrdata
 
 def progress(prev, current, max, str='|----+----|----+----|----+----|----+----|----+----|', out=sys.stdout):
