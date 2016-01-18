@@ -6,6 +6,8 @@ import errno
 import subprocess
 import shutil
 import threading
+import logging
+import multiprocessing
 
 if sys.version < '3':
     def u(s):
@@ -136,6 +138,7 @@ class Async(object):
         self.handlers_on_error = []
         self.handlers_on_done = []
         self.thread = None
+        self.process_name = "<unknown>"
 
     @classmethod
     def from_asyncs(cls, asyncs, **kwargs):
@@ -148,7 +151,7 @@ class Async(object):
         return cls(target=target, **kwargs)
 
     def __repr__(self):
-        return "Async({} started={} finished={} error={})".format(id(self), self.started, self.finished, self.error)
+        return "Async(process=\"{}\" id={} started={} finished={} error={})".format(self.process_name, id(self), self.started, self.finished, self.error)
 
     def on_error(self, handler):
         self.handlers_on_error.append(handler)
@@ -166,6 +169,7 @@ class Async(object):
     def run(self):
         assert not self.started
         args = self.args
+        self.process_name = multiprocessing.current_process().name
         if args is None:
             args = ()
         self.started = True
