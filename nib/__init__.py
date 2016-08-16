@@ -8,9 +8,6 @@ import shutil
 import logging
 
 
-from .async import (Async, BindingAsync)
-
-
 if sys.version < '3':
     def u(s):
         return s.decode('utf-8')
@@ -125,3 +122,40 @@ class TempDir(object):
         if self.path is not None and not self.keep:
             shutil.rmtree(self.path, True)
             self.path = None
+
+class ExtraLogFilter(logging.Filter):
+    def filter(self, record):
+        if hasattr(record, 'info'):
+            obj = record.info
+            if isinstance(obj, list):
+                for i in obj:
+                    record.msg += "\n\t{}".format(i)
+            elif isinstance(obj, dict):
+                for k,v in obj.items():
+                    record.msg += "\n\t{}: {}".format(k, v)
+            else:
+                record.msg += str(obj)
+
+        return super().filter(record)
+
+from .async import (Async, BindingAsync)
+
+class ColorFormatter(logging.Formatter):
+    RESET = "\033[0m"
+    LRED   = "\033[1;31m"
+    RED    = "\033[0;31m"
+    YELLOW = "\033[1;33m"
+    GRAY   = "\033[1;30m"
+
+    def format(self, record):
+        s = super().format(record)
+        level = record.levelno
+        if level >= logging.ERROR:
+            s = self.LRED + s + self.RESET
+        elif level >= logging.WARNING:
+            s = self.YELLOW + s + self.RESET
+        elif level >= logging.INFO:
+            pass
+        else:
+            s = self.GRAY + s + self.RESET
+        return s
