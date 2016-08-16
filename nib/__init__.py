@@ -6,6 +6,7 @@ import errno
 import subprocess
 import shutil
 import logging
+import datetime
 
 
 if sys.version < '3':
@@ -159,3 +160,15 @@ class ColorFormatter(logging.Formatter):
         else:
             s = self.GRAY + s + self.RESET
         return s
+
+class utc(datetime.tzinfo):
+    ZERO = datetime.timedelta(0)
+
+    def utcoffset(self, dt):
+        return self.ZERO
+
+    def dst(self, dt):
+        return self.ZERO
+
+    def tzname(self, dt):
+        return 'UTC'
