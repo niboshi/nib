@@ -64,21 +64,28 @@ def md5(path, file=True):
 
     return m.hexdigest()
 
-def mkdir(path):
+def mkdir(path, mode=None, **kwargs):
     if len(path) == 0:
         return path
-    try:
-        os.makedirs(encodePath(path))
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            raise
+    dirname = os.path.dirname(path)
+    if dirname != path:
+        mkdir(dirname, mode=mode, **kwargs)
+    if not os.path.isdir(path):
+        try:
+            os.mkdir(encodePath(path), **kwargs)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+
+        if mode is not None:
+            os.chmod(path, mode)
 
     return path
 
-def mkparent(path):
+def mkparent(path, **kwargs):
     dirpath = os.path.dirname(os.path.realpath(path))
     if not os.path.exists(dirpath):
-        mkdir(dirpath)
+        mkdir(dirpath, **kwargs)
     return path
 
 def execute(cmd, **kwargs):
