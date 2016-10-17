@@ -11,9 +11,9 @@ def get_generator_classes():
         PathGenerator,
         SizeFilter,
         RegexFilter,
-		SymlinkFilter,
-		RecurseFilter,
-		RealpathFilter,
+        SymlinkFilter,
+        RecurseFilter,
+        RealpathFilter,
     ]
 
 
