@@ -6,37 +6,8 @@ from .generators import get_generator_classes
 
 
 class EvaluationEnvironment(environment.EvaluationEnvironment):
-    def __init__(self):
-        generatorClss = get_generator_classes()
-
-        self.generators = {}
-        for cls in generatorClss:
-            self.generators[cls.key] = cls()
-
-        return
-
-    def evalGenerator(self, expr, input, positive):
-        key,qt = expr
-
-        m = re.match(r'([-a-z0-9]+)(?:\[(.*)\]|)', key)
-        key = m.group(1)
-        optstr = m.group(2) or ''
-
-        opts = {}
-        for s in optstr.split(','):
-            f = s.split('=', 1)
-            if len(f) == 1:
-                opts[f[0]] = True
-            else:
-                opts[f[0]] = f[1]
-
-        if key in self.generators:
-            generator = self.generators[key]
-        else:
-            raise Exception("Invalid generator: %s" % key)
-
-        return generator.eval(input, qt, opts, positive)
-
+    def get_generators(self):
+        return [cls() for cls in get_generator_classes()]
 
 
 def run_demo():

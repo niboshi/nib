@@ -6,17 +6,20 @@ class EvaluationEnvironment(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self):
-        pass
+        self.generators = dict((gen.__class__.key, gen) for gen in self.get_generators())
 
     def get_set_ops(self):
         return SetOperations()
 
-    def eval(self, token):
-        self.eval_impl(token, True)
-
     @abc.abstractmethod
-    def eval_impl(self, token, positive):
+    def get_generators(self):
         pass
+
+    def get_generator(self, key):
+        if key in self.generators:
+            return self.generators[key]
+        else:
+            raise RuntimeError("Invalid generator: {}".format(key))
 
     def union(self, source, o1, o2, positive1, positive2):
         source = list(source)

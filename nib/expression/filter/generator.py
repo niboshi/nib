@@ -13,9 +13,8 @@ class AbstractGenerator(object):
     __metaclass__ = abc.ABCMeta
 
     def eval(self, input, qt, opts, positive):
-        assert isinstance(qt, str)
-        assert isinstance(opts, dict)
-        assert isinstance(positive, bool)
+        assert isinstance(opts, dict), type(opts)
+        assert isinstance(positive, bool), type(positive)
         if input is not None:
             assert isinstance(input, collections.Iterable)
 

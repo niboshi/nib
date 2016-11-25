@@ -1,9 +1,13 @@
 import sys
 import abc
+import re
 import logging
 import collections
 
 from .environment import EvaluationEnvironment
+
+
+logger = logging.getLogger(__name__)
 
 
 class QueryTokenizer:
@@ -170,7 +174,23 @@ class TextNode(TreeNode):
         return True
 
     def eval_impl(self, env, source, positive):
-        return env.evalGenerator(self.token[1], source, positive)
+        logger.debug("Evaluating node: {}".format(self.token))
+        key,qt = self.token[1]
+
+        m = re.match(r'([-a-z0-9]+)(?:\[(.*)\]|)', key)
+        key = m.group(1)
+        optstr = m.group(2) or ''
+
+        opts = {}
+        for s in optstr.split(','):
+            f = s.split('=', 1)
+            if len(f) == 1:
+                opts[f[0]] = True
+            else:
+                opts[f[0]] = f[1]
+
+        generator = env.get_generator(key)
+        return generator.eval(source, qt, opts, positive)
 
 class OperatorNode(TreeNode):
     def __init__(self, token, op):
@@ -206,6 +226,7 @@ class UnaryOperator(Operator):
     __metaclass__ = abc.ABCMeta
 
     def eval(self, env, source, positive, o1):
+        logger.debug("Evaluating op: {} o1={}".format(self.__class__.__name__, o1))
         assert isinstance(env, EvaluationEnvironment)
         return self.eval_impl(env, source, positive, o1)
 
@@ -229,6 +250,7 @@ class BinaryOperator(Operator):
     __metaclass__ = abc.ABCMeta
 
     def eval(self, env, source, positive, o1, o2):
+        logger.debug("Evaluating op: {} o1={} o2={}".format(self.__class__.__name__, o1, o2))
         assert isinstance(env, EvaluationEnvironment)
         ret = self.eval_impl(env, source, positive, o1, o2)
         assert isinstance(ret, collections.Iterable)
@@ -307,7 +329,6 @@ class QueryParser(object):
         return self.tree
 
     def __annotate(self, tokens):
-        import re
         newTokens = []
         for i in range(len(tokens)):
             tok = tokens[i]
@@ -335,6 +356,13 @@ class QueryParser(object):
         assert node is not None
 
         node = self.__optimizeTree(node)
+
+        # Print optimized tree
+        if True:
+            logging.debug("Optimized tree:")
+            for line in "{}".format(node).split("\n"):
+                logging.debug(line)
+
         return node
 
     def __parseParenTree(self, tokens, start, allowClosingParen):
