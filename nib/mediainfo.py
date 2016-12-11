@@ -38,13 +38,13 @@ class MediaInfo:
 
     def querySingleClass(self, cls, tags):
         return self.querySingleSection(cls, tags)
-        
+
     def querySingleSection(self, section, tags):
         d = { }
         informStr = section + ';'
         for tag in tags:
             informStr += '%' + tag + "%\\n"
-        
+
         cmd = ['mediainfo', '--Inform=%s' % informStr, self.mediaFile]
         with subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=False, preexec_fn = subprocessPreexec) as popen:
             data = popen.communicate()[0]
@@ -56,14 +56,14 @@ class MediaInfo:
         lines = data.decode('utf-8').split("\n")
         #if len(tags) > len(lines):
         #    raise MediaInfoInvalidResultError()
-        
+
         for i in range(len(tags)):
             if i < len(lines):
                 d[tags[i]] = lines[i]
             else:
                 d[tags[i]] = ''
         return d
-    
+
     def queryFull(self):
         cmd = ['mediainfo', '--Full', self.mediaFile]
         section = None
