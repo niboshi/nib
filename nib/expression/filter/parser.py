@@ -290,7 +290,12 @@ class Op_Pipe(BinaryOperator):
         return res
 
 class QueryParser(object):
-    def __init__(self, str):
+    def __init__(self, q, token_priority=None):
+        if token_priority is None:
+            token_priority = {}
+        assert all(isinstance(key, str) for key, pri in token_priority.items())
+        self.token_priority = token_priority
+
         #--------------------------
         # Operator definition
         #--------------------------
@@ -319,7 +324,7 @@ class QueryParser(object):
         # Build expression tree
         #--------------------------
 
-        tokens = QueryTokenizer(str).get()
+        tokens = QueryTokenizer(q).get()
         tokens = self.__annotate(tokens)
         self.tree = self.__buildExpressionTree(tokens)
 
@@ -485,16 +490,13 @@ class QueryParser(object):
         allAndNodes = []
         traverseTopDown(node, collectAllAndNodes, arg=allAndNodes)
 
-        # TODO: Generator priority
-        priority = {}
-
         for n in allAndNodes:
             textNodes = []
             traverseTopDown(n, collectTextNodes, arg=textNodes)
             if len(textNodes) <= 1:
                 continue
             def key(n):
-                return priority.get(n.token[1][0], 0)
+                return self.token_priority.get(n.token[1][0], 0)
             textNodes = sorted(textNodes, key=key)
 
             n.childNodes[:] = []
