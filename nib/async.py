@@ -7,7 +7,10 @@ logger = logging.getLogger(__name__)
 
 
 class Async(object):
-    def __init__(self, target=None, args=None, print_on_error=False):
+    def __init__(self, target=None, args=None, print_on_error=False, keep=None):
+        """
+        keep: any object to avoid GC
+        """
         self.target = target
         self.args = args
         self.started = False
@@ -20,6 +23,7 @@ class Async(object):
         self.handlers_on_done = []
         self.thread = None
         self.process_name = "<unknown>"
+        self.keep = keep
 
     @classmethod
     def from_asyncs(cls, asyncs, **kwargs):
@@ -48,6 +52,7 @@ class Async(object):
             handler(self, *args)
 
     def run(self):
+        logger.debug("Thread starts: async={} thread={}".format(id(self), threading.current_thread()))
         assert not self.started
         args = self.args
         self.process_name = multiprocessing.current_process().name
@@ -72,6 +77,7 @@ class Async(object):
             self.call_handlers(self.handlers_on_success)
 
         self.call_handlers(self.handlers_on_done)
+        logger.debug("Thread exitting: async={} thread={}".format(id(self), threading.current_thread()))
 
     def start(self):
         self.run_thread()
