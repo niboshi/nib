@@ -22,7 +22,6 @@ class EvaluationEnvironment(object):
             raise RuntimeError("Invalid generator: {}".format(key))
 
     def union(self, source, o1, o2, positive1, positive2):
-        source = list(source)
         gen1 = o1.eval(self, source, positive1)
         gen2 = o2.eval(self, source, positive2)
         return self.get_set_ops().union(gen1, gen2)
