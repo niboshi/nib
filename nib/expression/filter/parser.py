@@ -177,7 +177,7 @@ class TextNode(TreeNode):
         logger.debug("Evaluating node: {}".format(self.token))
         key,qt = self.token[1]
 
-        m = re.match(r'([-a-z0-9]+)(?:\[(.*)\]|)', key)
+        m = re.match(r'([-_a-z0-9]+)(?:\[(.*)\]|)', key)
         key = m.group(1)
         optstr = m.group(2) or ''
 
