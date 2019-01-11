@@ -146,7 +146,7 @@ class ExtraLogFilter(logging.Filter):
 
         return super().filter(record)
 
-from .async import (Async, BindingAsync)
+from .async_ import (Async, BindingAsync)
 
 class ColorFormatter(logging.Formatter):
     RESET = "\033[0m"

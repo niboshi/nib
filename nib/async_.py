@@ -29,8 +29,8 @@ class Async(object):
     def from_asyncs(cls, asyncs, **kwargs):
         def target():
             results = []
-            for async in asyncs:
-                results.append(async.get())
+            for asy in asyncs:
+                results.append(asy.get())
             return results
 
         return cls(target=target, **kwargs)
