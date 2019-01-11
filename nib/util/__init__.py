@@ -42,7 +42,7 @@ def md5(path, file=True):
 	m = hashlib.md5()
 
 	if file:
-		f = open(encodePath(path), 'rb')
+		f = open(path, 'rb')
 		while True:
 			data = f.read(8192)
 			if not data: break
@@ -52,4 +52,3 @@ def md5(path, file=True):
 		m.update(path)
 
 	return m.hexdigest()
-
