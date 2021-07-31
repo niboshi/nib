@@ -35,6 +35,16 @@ class Async(object):
 
         return cls(target=target, **kwargs)
 
+    @classmethod
+    def from_futures(cls, futures, **kwargs):
+        def target():
+            results = []
+            for future in futures:
+                results.append(future.result())
+            return results
+
+        return cls(target=target, **kwargs)
+
     def __repr__(self):
         return "Async(process=\"{}\" id={} started={} finished={} error={})".format(self.process_name, id(self), self.started, self.finished, self.error)
 
