@@ -4,9 +4,14 @@ import collections
 
 class EvaluationEnvironment(object):
     __metaclass__ = abc.ABCMeta
+    __generators = None
 
-    def __init__(self):
-        self.generators = dict((gen.__class__.key, gen) for gen in self.get_generators())
+    @property
+    def generators(self):
+        if self.__generators is None:
+            self.__generators = self.get_generators()
+            assert isinstance(self.__generators, dict)
+        return self.__generators
 
     def get_set_ops(self):
         return SetOperations()
@@ -16,10 +21,11 @@ class EvaluationEnvironment(object):
         pass
 
     def get_generator(self, key):
-        if key in self.generators:
-            return self.generators[key]
+        generators = self.generators
+        if key in generators:
+            return generators[key]
         else:
-            raise RuntimeError("Invalid generator: {}".format(key))
+            raise RuntimeError(f"Invalid generator: {key}, {generators}")
 
     def union(self, source, o1, o2, positive1, positive2):
         gen1 = o1.eval(self, source, positive1)

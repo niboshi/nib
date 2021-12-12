@@ -190,7 +190,7 @@ class TextNode(TreeNode):
                 opts[f[0]] = f[1]
 
         generator = env.get_generator(key)
-        return generator.eval(source, qt, opts, positive)
+        return generator.eval(env, source, qt, opts, positive)
 
 class OperatorNode(TreeNode):
     def __init__(self, token, op):
